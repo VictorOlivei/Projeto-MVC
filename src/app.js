@@ -17,6 +17,9 @@ const authRoutes = require('./routes/auth.routes');
 const logRoutes = require('./routes/log.routes');
 const healthRoutes = require('./routes/health.routes');
 
+// Importação do Swagger
+const { setupSwagger } = require('./docs/swagger');
+
 // Inicialização do logger
 const logger = require('./utils/logger');
 
@@ -36,6 +39,9 @@ const accessLogStream = fs.createWriteStream(
 );
 app.use(morgan('combined', { stream: accessLogStream }));
 
+// Configuração do Swagger
+setupSwagger(app);
+
 // Aplicação das rotas
 app.use('/auth', authRoutes);
 app.use('/logs', logRoutes);
@@ -54,6 +60,7 @@ const PORT = config.PORT || 3000;
 app.listen(PORT, () => {
   logger.info(`Servidor rodando na porta ${PORT}`);
   console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Documentação da API disponível em: http://localhost:${PORT}/api-docs`);
 });
 
 module.exports = app;

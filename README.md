@@ -8,6 +8,19 @@ Este documento descreve a arquitetura proposta para projetos futuros, seguindo o
 
 A solução desenvolvida neste trabalho pode ser utilizada como base para novos projetos, garantindo que requisitos essenciais já estejam embutidos na arquitetura desde o início.
 
+### Índice
+
+1. [Visão Geral da Arquitetura](#diagrama-da-arquitetura)
+2. [Estrutura de Diretórios](#estrutura-de-diretórios)
+3. [Explicação das Decisões Técnicas](#explicação-das-decisões-técnicas)
+4. [API e Endpoints](#api-e-endpoints)
+5. [Guia de Instalação e Execução](#guia-de-instalação-e-execução)
+6. [Garantia de Escalabilidade e Segurança](#garantia-de-escalabilidade-e-segurança)
+7. [Documentação da API com Swagger](#documentação-da-api-com-swagger)
+8. [Monitoramento e Logs](#monitoramento-e-logs)
+9. [Práticas de Desenvolvimento Recomendadas](#práticas-de-desenvolvimento-recomendadas)
+10. [Conclusão](#conclusão)
+
 ### Diagrama da Arquitetura
 
 ```
@@ -61,6 +74,8 @@ src/
   │    ├── auth.controller.js   # Autenticação
   │    ├── health.controller.js # Verificação de saúde
   │    └── log.controller.js    # Acesso aos logs
+  ├── docs/                     # Documentação da API
+  │    └── swagger.js           # Configuração do Swagger
   ├── logs/                     # Armazenamento de logs
   ├── middlewares/              # Middlewares
   │    ├── auth.middleware.js   # Autenticação e autorização
@@ -138,6 +153,180 @@ O endpoint `/health` fornece informações sobre o estado da aplicação, inclui
 
 Estas métricas são essenciais para monitorar a saúde da aplicação e identificar possíveis problemas.
 
+## API e Endpoints
+
+A API implementada nesta arquitetura segue os princípios RESTful e oferece os seguintes endpoints principais:
+
+### Autenticação
+
+| Método | Endpoint | Descrição | Autenticação |
+|--------|----------|-----------|--------------|
+| POST | `/auth/login` | Autenticação de usuário | Não |
+| POST | `/auth/register` | Registro de novo usuário | Não |
+
+#### Exemplo de Requisição - Login
+
+```json
+POST /auth/login
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+```
+
+#### Exemplo de Resposta - Login
+
+```json
+{
+  "success": true,
+  "message": "Login realizado com sucesso",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": 1,
+      "name": "Administrador",
+      "email": "admin@example.com",
+      "role": "admin",
+      "createdAt": "2025-05-07T12:00:00.000Z"
+    }
+  }
+}
+```
+
+### Monitoramento
+
+| Método | Endpoint | Descrição | Autenticação |
+|--------|----------|-----------|--------------|
+| GET | `/health` | Verificar saúde do sistema | Não |
+
+#### Exemplo de Resposta - Health Check
+
+```json
+{
+  "success": true,
+  "message": "Serviço funcionando normalmente",
+  "data": {
+    "status": "OK",
+    "timestamp": "2025-05-07T15:30:00.000Z",
+    "serverStartTime": "2025-05-07T12:00:00.000Z",
+    "metrics": {
+      "process": {
+        "uptime": 12600,
+        "memoryUsage": {
+          "rss": 45056000,
+          "heapTotal": 23195648,
+          "heapUsed": 18093000
+        },
+        "cpuUsage": {
+          "user": 256000,
+          "system": 32000
+        }
+      },
+      "system": {
+        "totalMemory": 8589934592,
+        "freeMemory": 4294967296,
+        "cpus": 8,
+        "loadAvg": [1.2, 1.5, 1.7]
+      }
+    }
+  }
+}
+```
+
+### Logs
+
+| Método | Endpoint | Descrição | Autenticação | Autorização |
+|--------|----------|-----------|--------------|-------------|
+| GET | `/logs` | Obter logs do sistema | Sim | Role: admin |
+
+#### Parâmetros de Consulta
+
+- `type` - Tipo de log (combined, error, access). Padrão: combined
+- `limit` - Número máximo de entradas (1-1000). Padrão: 100
+
+#### Exemplo de Requisição
+
+```
+GET /logs?type=error&limit=10
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+#### Exemplo de Resposta
+
+```json
+{
+  "success": true,
+  "message": "Logs obtidos com sucesso",
+  "data": {
+    "logType": "error",
+    "count": 10,
+    "logs": [
+      {
+        "level": "error",
+        "message": "POST /auth/login - 401 - Credenciais inválidas",
+        "timestamp": "2025-05-07T15:25:00.000Z",
+        "ip": "192.168.1.100"
+      },
+      // ... outras entradas de log
+    ]
+  }
+}
+```
+
+## Guia de Instalação e Execução
+
+### Pré-requisitos
+
+- Node.js (v14.x ou superior)
+- npm (v6.x ou superior)
+
+### Instalação
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/seu-usuario/arquitetura-mvc.git
+cd arquitetura-mvc
+```
+
+2. Instale as dependências:
+```bash
+npm install
+```
+
+3. Crie um arquivo `.env` baseado no `.env.example` (se disponível):
+```bash
+cp .env.example .env
+```
+
+4. Configure as variáveis de ambiente no arquivo `.env`:
+```
+PORT=3000
+NODE_ENV=development
+JWT_SECRET=seu-segredo-jwt
+JWT_EXPIRES_IN=1h
+LOG_LEVEL=info
+```
+
+### Execução
+
+- Para ambiente de desenvolvimento:
+```bash
+npm run dev
+```
+
+- Para ambiente de produção:
+```bash
+npm start
+```
+
+### Teste da API
+
+Após iniciar o servidor, você pode:
+
+1. Acessar a interface de teste HTML em `http://localhost:3000/test.html`
+2. Usar ferramentas como Postman ou Insomnia para testar os endpoints
+3. Consultar a documentação Swagger em `http://localhost:3000/api-docs`
+
 ## Garantia de Escalabilidade e Segurança
 
 ### Escalabilidade
@@ -168,8 +357,85 @@ Vários aspectos de segurança foram implementados:
 
 6. **Variáveis de ambiente**: Isolamento de informações sensíveis do código-fonte.
 
+## Documentação da API com Swagger
+
+A documentação completa da API está disponível através da interface do Swagger, que fornece uma UI interativa para explorar e testar os endpoints.
+
+### Acessando a Documentação
+
+Após iniciar o servidor, acesse:
+
+```
+http://localhost:3000/api-docs
+```
+
+### Recursos disponíveis na documentação
+
+- Descrição detalhada de todos os endpoints
+- Modelos de requisição e resposta
+- Possibilidade de testar a API diretamente na interface
+- Informações sobre autenticação e autorização
+- Detalhes sobre parâmetros e códigos de status
+
+### Autenticação no Swagger
+
+Para testar endpoints protegidos através do Swagger UI:
+
+1. Execute primeiro uma requisição POST para `/auth/login`
+2. Copie o token JWT da resposta
+3. Clique no botão "Authorize" na parte superior do Swagger UI
+4. Digite o token no formato `Bearer seu-token-jwt`
+5. Agora você pode acessar os endpoints protegidos
+
+## Monitoramento e Logs
+
+### Estrutura de Logs
+
+O sistema gera três tipos de arquivos de log:
+
+1. **combined.log**: Todos os logs do sistema
+2. **error.log**: Apenas logs de erro
+3. **access.log**: Logs de acesso à API (gerados pelo Morgan)
+
+### Níveis de Log
+
+O Winston está configurado para os seguintes níveis (em ordem de prioridade):
+
+1. **error**: Situações de erro que exigem atenção imediata
+2. **warn**: Avisos sobre situações potencialmente problemáticas
+3. **info**: Informações gerais sobre o funcionamento do sistema
+4. **debug**: Informações detalhadas úteis para depuração
+
+### Monitoramento em Tempo Real
+
+O endpoint `/health` fornece informações em tempo real sobre:
+
+- **Carga do sistema**: CPU, memória, etc.
+- **Estado da aplicação**: Tempo de atividade, uso de memória
+- **Disponibilidade de recursos**: Espaço em disco, conexões de rede, etc.
+
+## Práticas de Desenvolvimento Recomendadas
+
+Ao estender ou modificar esta arquitetura, recomenda-se seguir estas práticas:
+
+1. **Manter a separação das camadas**: Respeitar o padrão MVC para manter o código organizado.
+
+2. **Documentar novas APIs**: Atualizar a documentação Swagger ao adicionar novos endpoints.
+
+3. **Registrar logs adequados**: Utilizar os níveis de log apropriados para cada situação.
+
+4. **Tratamento de erros consistente**: Utilizar o middleware de erro para todas as exceções.
+
+5. **Validação de entrada**: Sempre validar e sanitizar dados de entrada.
+
+6. **Testes automatizados**: Implementar testes para novas funcionalidades.
+
+7. **Segurança primeiro**: Considerar as implicações de segurança de cada nova funcionalidade.
+
 ## Conclusão
 
 A arquitetura MVC implementada neste projeto fornece uma base sólida para o desenvolvimento de novas aplicações, garantindo que requisitos não funcionais importantes já estejam incorporados desde o início. Ela é flexível o suficiente para ser adaptada a diferentes tipos de projetos, mantendo ao mesmo tempo uma estrutura consistente e segura.
 
-A separação clara entre as camadas, o tratamento adequado de erros, o sistema de log estruturado, e os mecanismos de autenticação e autorização contribuem para um sistema robusto e de fácil manutenção.
+A separação clara entre as camadas, o tratamento adequado de erros, o sistema de log estruturado, os mecanismos de autenticação e autorização, e a documentação completa com Swagger contribuem para um sistema robusto, bem documentado e de fácil manutenção.
+
+Esta arquitetura representa não apenas uma solução técnica, mas um conjunto de boas práticas de desenvolvimento que podem ser aplicadas em diversos contextos de projetos de software.
