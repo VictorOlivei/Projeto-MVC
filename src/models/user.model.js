@@ -1,56 +1,140 @@
 /**
  * Modelo de usuário para autenticação
- * Em um sistema real, isso seria conectado a um banco de dados
- * Para este MVP, usamos uma estrutura simples em memória
+ * Usando Sequelize para conexão com banco de dados
  */
-class User {
-  constructor(id, name, email, password, role = 'user') {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-    this.password = password; // Em produção, esta senha seria armazenada com hash
-    this.role = role;
-    this.createdAt = new Date();
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/database");
+const bcrypt = require("bcryptjs");
+
+// Definição do modelo de usuário
+const User = sequelize.define(
+  "User",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    role: {
+      type: DataTypes.ENUM("admin", "user"),
+      defaultValue: "user",
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          user.password = await bcrypt.hash(user.password, 10);
+        }
+      },
+      beforeUpdate: async (user) => {
+        if (user.changed("password")) {
+          user.password = await bcrypt.hash(user.password, 10);
+        }
+      },
+    },
+    tableName: "users",
   }
+);
 
-  // Método para converter para JSON
-  toJSON() {
-    const { password, ...userWithoutPassword } = this;
-    return userWithoutPassword;
-  }
-}
+// Método para converter para JSON (sem expor a senha)
+User.prototype.toJSON = function () {
+  const values = { ...this.get() };
+  delete values.password;
+  return values;
+};
 
-// Mock de base de dados de usuários para o MVP
-// Em um sistema real, isso viria de um banco de dados
-const users = [
-  new User(1, 'Administrador', 'admin@example.com', 'admin123', 'admin'),
-  new User(2, 'Usuário Padrão', 'user@example.com', 'user123', 'user'),
-];
+// Método para verificar senha
+User.prototype.checkPassword = async function (password) {
+  return bcrypt.compare(password, this.password);
+};
 
-// Métodos para interagir com os "dados"
+// Métodos para interagir com o banco de dados
 const UserModel = {
   // Encontrar todos os usuários
-  findAll: () => users,
+  findAll: async () => await User.findAll(),
 
   // Encontrar usuário por ID
-  findById: (id) => users.find(user => user.id === parseInt(id)),
+  findById: async (id) => await User.findByPk(id),
 
   // Encontrar usuário por email
-  findByEmail: (email) => users.find(user => user.email === email),
+  findByEmail: async (email) => await User.findOne({ where: { email } }),
 
   // Criar um novo usuário
-  create: (userData) => {
-    const id = users.length + 1;
-    const newUser = new User(
-      id,
-      userData.name,
-      userData.email,
-      userData.password,
-      userData.role || 'user'
-    );
-    users.push(newUser);
-    return newUser;
-  }
+  create: async (userData) => await User.create(userData),
+
+  // Atualizar um usuário
+  update: async (id, userData) => {
+    const user = await User.findByPk(id);
+    if (!user) return null;
+    return await user.update(userData);
+  },
+
+  // Excluir um usuário
+  delete: async (id) => {
+    const user = await User.findByPk(id);
+    if (!user) return false;
+    await user.destroy();
+    return true;
+  },
+
+  // Inicializar usuários padrão (admin e user)
+  initializeDefaultUsers: async () => {
+    try {
+      const adminExists = await User.findOne({
+        where: { email: "admin@example.com" },
+      });
+      const userExists = await User.findOne({
+        where: { email: "user@example.com" },
+      });
+
+      if (!adminExists) {
+        await User.create({
+          name: "Administrador",
+          email: "admin@example.com",
+          password: "admin123",
+          role: "admin",
+        });
+        console.log("Usuário administrador criado com sucesso!");
+      }
+
+      if (!userExists) {
+        await User.create({
+          name: "Usuário Padrão",
+          email: "user@example.com",
+          password: "user123",
+          role: "user",
+        });
+        console.log("Usuário padrão criado com sucesso!");
+      }
+    } catch (error) {
+      console.error("Erro ao criar usuários padrão:", error);
+    }
+  },
 };
 
 module.exports = UserModel;

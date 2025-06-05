@@ -15,11 +15,12 @@ A solução desenvolvida neste trabalho pode ser utilizada como base para novos 
 3. [Explicação das Decisões Técnicas](#explicação-das-decisões-técnicas)
 4. [API e Endpoints](#api-e-endpoints)
 5. [Guia de Instalação e Execução](#guia-de-instalação-e-execução)
-6. [Garantia de Escalabilidade e Segurança](#garantia-de-escalabilidade-e-segurança)
-7. [Documentação da API com Swagger](#documentação-da-api-com-swagger)
-8. [Monitoramento e Logs](#monitoramento-e-logs)
-9. [Práticas de Desenvolvimento Recomendadas](#práticas-de-desenvolvimento-recomendadas)
-10. [Conclusão](#conclusão)
+6. [Front-end React](#front-end-react)
+7. [Garantia de Escalabilidade e Segurança](#garantia-de-escalabilidade-e-segurança)
+8. [Documentação da API com Swagger](#documentação-da-api-com-swagger)
+9. [Monitoramento e Logs](#monitoramento-e-logs)
+10. [Práticas de Desenvolvimento Recomendadas](#práticas-de-desenvolvimento-recomendadas)
+11. [Conclusão](#conclusão)
 
 ### Diagrama da Arquitetura
 
@@ -159,10 +160,10 @@ A API implementada nesta arquitetura segue os princípios RESTful e oferece os s
 
 ### Autenticação
 
-| Método | Endpoint | Descrição | Autenticação |
-|--------|----------|-----------|--------------|
-| POST | `/auth/login` | Autenticação de usuário | Não |
-| POST | `/auth/register` | Registro de novo usuário | Não |
+| Método | Endpoint         | Descrição                | Autenticação |
+| ------ | ---------------- | ------------------------ | ------------ |
+| POST   | `/auth/login`    | Autenticação de usuário  | Não          |
+| POST   | `/auth/register` | Registro de novo usuário | Não          |
 
 #### Exemplo de Requisição - Login
 
@@ -195,9 +196,9 @@ POST /auth/login
 
 ### Monitoramento
 
-| Método | Endpoint | Descrição | Autenticação |
-|--------|----------|-----------|--------------|
-| GET | `/health` | Verificar saúde do sistema | Não |
+| Método | Endpoint  | Descrição                  | Autenticação |
+| ------ | --------- | -------------------------- | ------------ |
+| GET    | `/health` | Verificar saúde do sistema | Não          |
 
 #### Exemplo de Resposta - Health Check
 
@@ -235,9 +236,9 @@ POST /auth/login
 
 ### Logs
 
-| Método | Endpoint | Descrição | Autenticação | Autorização |
-|--------|----------|-----------|--------------|-------------|
-| GET | `/logs` | Obter logs do sistema | Sim | Role: admin |
+| Método | Endpoint | Descrição             | Autenticação | Autorização |
+| ------ | -------- | --------------------- | ------------ | ----------- |
+| GET    | `/logs`  | Obter logs do sistema | Sim          | Role: admin |
 
 #### Parâmetros de Consulta
 
@@ -266,7 +267,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         "message": "POST /auth/login - 401 - Credenciais inválidas",
         "timestamp": "2025-05-07T15:25:00.000Z",
         "ip": "192.168.1.100"
-      },
+      }
       // ... outras entradas de log
     ]
   }
@@ -283,22 +284,26 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### Instalação
 
 1. Clone o repositório:
+
 ```bash
 git clone https://github.com/seu-usuario/arquitetura-mvc.git
 cd arquitetura-mvc
 ```
 
 2. Instale as dependências:
+
 ```bash
 npm install
 ```
 
 3. Crie um arquivo `.env` baseado no `.env.example` (se disponível):
+
 ```bash
 cp .env.example .env
 ```
 
 4. Configure as variáveis de ambiente no arquivo `.env`:
+
 ```
 PORT=3000
 NODE_ENV=development
@@ -310,11 +315,13 @@ LOG_LEVEL=info
 ### Execução
 
 - Para ambiente de desenvolvimento:
+
 ```bash
 npm run dev
 ```
 
 - Para ambiente de produção:
+
 ```bash
 npm start
 ```
@@ -326,6 +333,100 @@ Após iniciar o servidor, você pode:
 1. Acessar a interface de teste HTML em `http://localhost:3000/test.html`
 2. Usar ferramentas como Postman ou Insomnia para testar os endpoints
 3. Consultar a documentação Swagger em `http://localhost:3000/api-docs`
+
+## Front-end React
+
+Uma interface de usuário moderna foi desenvolvida utilizando React para interagir com a API. O front-end oferece uma experiência amigável e responsiva para testar todas as funcionalidades da API.
+
+### Estrutura do Projeto React
+
+O projeto React está organizado da seguinte forma:
+
+```
+frontend/
+├── public/                # Arquivos estáticos
+├── src/                   # Código-fonte
+│   ├── components/        # Componentes reutilizáveis
+│   │   ├── Button/        # Componente de botão
+│   │   ├── Card/          # Componente de card
+│   │   ├── Header/        # Componente de cabeçalho
+│   │   ├── Input/         # Componente de input
+│   │   └── Layout/        # Componente de layout
+│   ├── contexts/          # Contextos React
+│   │   └── AuthContext.js # Contexto de autenticação
+│   ├── pages/             # Páginas da aplicação
+│   │   ├── Home/          # Página inicial
+│   │   ├── Login/         # Página de login
+│   │   ├── Register/      # Página de cadastro
+│   │   ├── Health/        # Página de health check
+│   │   └── Logs/          # Página de logs
+│   ├── services/          # Serviços
+│   │   └── api.js         # Configuração do Axios
+│   ├── App.js             # Componente principal
+│   └── index.js           # Ponto de entrada
+└── package.json           # Dependências
+```
+
+### Instalação e Execução do Front-end
+
+#### Pré-requisitos
+
+- Node.js (v14.x ou superior)
+- npm (v6.x ou superior)
+- Back-end da API em execução
+
+#### Instalação
+
+1. Navegue até o diretório do front-end:
+
+```bash
+cd frontend
+```
+
+2. Instale as dependências:
+
+```bash
+npm install
+```
+
+#### Execução
+
+1. Certifique-se de que o back-end está rodando:
+
+```bash
+# No diretório raiz do projeto
+npm run dev
+```
+
+2. Em outro terminal, inicie o front-end React:
+
+```bash
+cd frontend
+npm start
+```
+
+Como o back-end já está usando a porta 3000, o React provavelmente perguntará se você deseja usar outra porta (como a 3001). Responda "Y" (sim).
+
+3. Acesse o front-end no navegador:
+
+```
+http://localhost:3001
+```
+
+### Funcionalidades do Front-end
+
+- **Login**: Use as credenciais padrão (admin@example.com / admin123)
+- **Cadastro**: Registre novos usuários no sistema
+- **Health Check**: Verifique o status do sistema, incluindo métricas de desempenho
+- **Logs**: Acesse e filtre os logs do sistema (apenas como administrador)
+
+### Tecnologias Utilizadas
+
+- **React**: Biblioteca para construção de interfaces
+- **React Router**: Navegação entre páginas
+- **Axios**: Cliente HTTP para comunicação com a API
+- **Styled Components**: Estilização de componentes
+- **Context API**: Gerenciamento de estado global
 
 ## Garantia de Escalabilidade e Segurança
 
